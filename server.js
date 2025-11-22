@@ -15,17 +15,22 @@ await connectDB();
 const app = express();
 
 // =======================
-// CORS setup for multiple frontends
+// CORS setup for multiple frontend
 // =======================
 const allowedOrigins = [
   "http://localhost:3000",
-  process.env.FRONTEND_URL,
+  "https://aroicon-checkin.vercel.app",
 ];
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    // allow any origin (including browser requests)
-    callback(null, true);
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if(allowedOrigins.includes(origin)){
+      callback(null, true);
+    } else {
+      console.log("Blocked by cors:", origin);
+      callback(new Error("Not allowed by CORS"), false)
+    }
   },
   credentials: true,
 };
