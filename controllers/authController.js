@@ -52,29 +52,25 @@ export const loginUser = async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens(user._id);
 
-    // =======================
     // ACCESS TOKEN COOKIE
-    // =======================
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      maxAge: 24 * 60 * 60 * 1000,
       domain:
         process.env.NODE_ENV === "production"
-          ? "facultymanagement.onrender.com" // your backend domain
+          ? "facultymanagement.onrender.com"
           : "localhost",
       path: "/",
     });
 
-    // =======================
     // REFRESH TOKEN COOKIE
-    // =======================
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       domain:
         process.env.NODE_ENV === "production"
           ? "facultymanagement.onrender.com"
@@ -84,7 +80,7 @@ export const loginUser = async (req, res) => {
 
     res.json({
       message: "Login successful",
-      accessToken, // OPTIONAL (your middleware uses cookie)
+      accessToken,
       user: {
         id: user._id,
         name: user.name,
@@ -97,6 +93,44 @@ export const loginUser = async (req, res) => {
   }
 };
 
+// =======================
+// Refresh Access Token (FIX FOR YOUR ERROR)
+// =======================
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: "No refresh token found" });
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+    const newAccessToken = jwt.sign(
+      { id: decoded.id },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    // Update accessToken cookie
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+      domain:
+        process.env.NODE_ENV === "production"
+          ? "facultymanagement.onrender.com"
+          : "localhost",
+      path: "/",
+    });
+
+    res.json({ accessToken: newAccessToken });
+
+  } catch (error) {
+    res.status(401).json({ message: "Invalid refresh token" });
+  }
+};
 
 
 
