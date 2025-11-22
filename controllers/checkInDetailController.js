@@ -59,3 +59,83 @@ export const getCheckInDetailById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// =======================
+// Update Arrival Check-In
+// =======================
+export const updateArrivalCheckIn = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const record = await CheckInDetail.findById(id);
+    if (!record) {
+      return res.status(404).json({ message: "Record not found" });
+    }
+
+    // Set status true and record time
+    record.arrivalCheckInStatus = true;
+    record.arrivalCheckInTime = new Date().toISOString();
+
+    await record.save();
+
+    res.status(200).json({
+      message: "Arrival check-in updated successfully",
+      data: record,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// =======================
+// Update Departure Check-In
+// =======================
+export const updateDepartureCheckIn = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const record = await CheckInDetail.findById(id);
+    if (!record) {
+      return res.status(404).json({ message: "Record not found" });
+    }
+
+    record.departureCheckInStatus = true;
+    record.departureCheckInTime = new Date().toISOString();
+
+    await record.save();
+
+    res.status(200).json({
+      message: "Departure check-in updated successfully",
+      data: record,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =======================
+// Update Hotel Check-In
+// =======================
+export const updateHotelCheckIn = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const record = await CheckInDetail.findById(id);
+    if (!record) {
+      return res.status(404).json({ message: "Record not found" });
+    }
+
+    record.hotelCheckInStatus = true;
+    record.hotelCheckInTime = new Date().toISOString();
+
+    await record.save();
+
+    res.status(200).json({
+      message: "Hotel check-in updated successfully",
+      data: record,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
