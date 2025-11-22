@@ -42,11 +42,11 @@ export const loginUser = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user)
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid email" });
 
     const match = await user.matchPassword(password);
     if (!match)
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid password" });
 
     const { accessToken, refreshToken } = generateTokens(user._id);
 
