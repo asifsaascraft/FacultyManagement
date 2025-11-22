@@ -33,8 +33,10 @@ export const registerUser = async (req, res) => {
   }
 };
 
+
+
 // =======================
-// Login User
+// Login User New Code by Adil
 // =======================
 export const loginUser = async (req, res) => {
   try {
@@ -42,64 +44,130 @@ export const loginUser = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user)
-      return res.status(400).json({ message: "Invalid email" });
+      return res.status(400).json({ message: "This email is not registred" });
 
     const match = await user.matchPassword(password);
     if (!match)
-      return res.status(400).json({ message: "Invalid password" });
+      return res.status(400).json({ message: "You entered a wrong password" });
 
     const { accessToken, refreshToken } = generateTokens(user._id);
 
+    // =======================
+    // ACCESS TOKEN COOKIE
+    // =======================
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      domain:
+        process.env.NODE_ENV === "production"
+          ? "facultymanagement.onrender.com" // your backend domain
+          : "localhost",
+      path: "/",
+    });
+
+    // =======================
+    // REFRESH TOKEN COOKIE
+    // =======================
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      domain:
+        process.env.NODE_ENV === "production"
+          ? "facultymanagement.onrender.com"
+          : "localhost",
+      path: "/",
     });
 
     res.json({
       message: "Login successful",
-      accessToken,
+      accessToken, // OPTIONAL (your middleware uses cookie)
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
       },
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+
+
+
+
+// =======================
+// Login User OLD Code
+// =======================
+// export const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     const user = await User.findOne({ email });
+//     if (!user)
+//       return res.status(400).json({ message: "Invalid email" });
+
+//     const match = await user.matchPassword(password);
+//     if (!match)
+//       return res.status(400).json({ message: "Invalid password" });
+
+//     const { accessToken, refreshToken } = generateTokens(user._id);
+
+//     res.cookie("refreshToken", refreshToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "none",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
+
+//     res.json({
+//       message: "Login successful",
+//       accessToken,
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//       },
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 // =======================
 // Refresh Token
 // =======================
-export const refreshAccessToken = async (req, res) => {
-  try {
-    const token = req.cookies.refreshToken;
-    if (!token)
-      return res.status(401).json({ message: "No refresh token found" });
+// export const refreshAccessToken = async (req, res) => {
+//   try {
+//     const token = req.cookies.refreshToken;
+//     if (!token)
+//       return res.status(401).json({ message: "No refresh token found" });
 
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+//     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 
-    const user = await User.findById(decoded.id);
-    if (!user)
-      return res.status(401).json({ message: "User not found" });
+//     const user = await User.findById(decoded.id);
+//     if (!user)
+//       return res.status(401).json({ message: "User not found" });
 
-    const { accessToken, refreshToken } = generateTokens(user._id);
+//     const { accessToken, refreshToken } = generateTokens(user._id);
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+//     res.cookie("refreshToken", refreshToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "none",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
 
-    res.json({ accessToken });
-  } catch (error) {
-    res.status(401).json({ message: "Invalid refresh token" });
-  }
-};
+//     res.json({ accessToken });
+//   } catch (error) {
+//     res.status(401).json({ message: "Invalid refresh token" });
+//   }
+// };
 
 // =======================
 // Logout User
