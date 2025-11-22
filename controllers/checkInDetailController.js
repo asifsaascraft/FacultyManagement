@@ -139,3 +139,55 @@ export const updateHotelCheckIn = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// =======================
+// Update Hall Check-In
+// =======================
+export const updateHallCheckIn = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const record = await CheckInDetail.findById(id);
+    if (!record) {
+      return res.status(404).json({ message: "Record not found" });
+    }
+
+    record.hallCheckInStatus = true;
+    record.hallCheckInTime = new Date().toISOString();
+
+    await record.save();
+
+    res.status(200).json({
+      message: "Hall check-in updated successfully",
+      data: record,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =======================
+// Update Presentation Submit Status
+// =======================
+export const updatePresentationSubmit = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const record = await CheckInDetail.findById(id);
+    if (!record) {
+      return res.status(404).json({ message: "Record not found" });
+    }
+
+    record.presentationSubmitStatus = true;
+    record.presentationSubmitTime = new Date().toISOString();
+
+    await record.save();
+
+    res.status(200).json({
+      message: "Presentation submitted successfully",
+      data: record,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -8,6 +8,8 @@ import {
   updateArrivalCheckIn,
   updateDepartureCheckIn,
   updateHotelCheckIn,
+  updateHallCheckIn,
+  updatePresentationSubmit,
 } from "../controllers/checkInDetailController.js";
 
 const router = express.Router();
@@ -21,6 +23,8 @@ router.get("/checkin-details/:id", protect, getCheckInDetailById);  // Get singl
 router.put("/checkin-details/:id/arrival", protect, updateArrivalCheckIn);
 router.put("/checkin-details/:id/departure", protect, updateDepartureCheckIn);
 router.put("/checkin-details/:id/hotel", protect, updateHotelCheckIn);
+router.put("/checkin-details/:id/hall", protect, updateHallCheckIn);
+router.put("/checkin-details/:id/presentation", protect, updatePresentationSubmit);
 
 
 export default router;

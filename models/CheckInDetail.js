@@ -44,6 +44,18 @@ const CheckInDetailSchema = new mongoose.Schema(
     checkOutDate: {
       type: String,
     },
+    topicName: {
+      type: String,
+    },
+    talkDate: {
+      type: String,
+    },
+    talkStartTime: {
+      type: String,
+    },
+    talkEndTime: {
+      type: String,
+    },
     arrivalCheckInStatus: {
       type: Boolean,
       default: false,
@@ -64,7 +76,21 @@ const CheckInDetailSchema = new mongoose.Schema(
     },
     hotelCheckInTime: {
       type: String,
-    }
+    },
+    hallCheckInStatus: {
+      type: Boolean,
+      default: false,
+    },
+    hallCheckInTime: {
+      type: String,
+    },
+    presentationSubmitStatus: {
+      type: Boolean,
+      default: false,
+    },
+    presentationSubmitTime: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
