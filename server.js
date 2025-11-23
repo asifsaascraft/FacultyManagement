@@ -38,7 +38,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options(cors(corsOptions)); // fix safari
+app.use(cors(corsOptions));  
+// REMOVE the app.options(...) line completely // fix safari
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
