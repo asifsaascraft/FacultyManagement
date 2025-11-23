@@ -1,108 +1,65 @@
+// new code 
+
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { generateTokens } from "../utils/generateTokens.js";
-import sendEmailWithTemplate from "../utils/sendEmail.js";
 
-// =======================
-// Register User
-// =======================
-export const registerUser = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+/* Helper → detect production frontend hostname */
+const PROD_DOMAIN = "aroicon-checkin.vercel.app";
 
-    if (!name || !email || !password)
-      return res.status(400).json({ message: "All fields are required" });
+function cookieOptions(httpOnly = false) {
+  return {
+    httpOnly,
+    secure: true,
+    sameSite: "none",
+    maxAge: 24 * 60 * 60 * 1000,
+    domain: process.env.NODE_ENV === "production" ? PROD_DOMAIN : undefined,
+    path: "/",
+  };
+}
 
-    const exists = await User.findOne({ email });
-    if (exists)
-      return res.status(400).json({ message: "Email already registered" });
-
-    const user = await User.create({ name, email, password });
-
-    res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-
-
-// =======================
-// Login User New Code by Adil
-// =======================
+/* =======================
+      LOGIN
+=========================*/
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
     if (!user)
-      return res.status(400).json({ message: "This email is not registred" });
+      return res.status(400).json({ message: "This email is not registered" });
 
     const match = await user.matchPassword(password);
     if (!match)
-      return res.status(400).json({ message: "You entered a wrong password" });
+      return res.status(400).json({ message: "Incorrect password" });
 
     const { accessToken, refreshToken } = generateTokens(user._id);
 
-    // ACCESS TOKEN COOKIE
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-      domain:
-        process.env.NODE_ENV === "production"
-          ? "facultymanagement.onrender.com"
-          : "localhost",
-      path: "/",
-    });
+    // Do NOT store accessToken httpOnly
+    res.cookie("accessToken", accessToken, cookieOptions(false));
 
-    // REFRESH TOKEN COOKIE
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      domain:
-        process.env.NODE_ENV === "production"
-          ? "facultymanagement.onrender.com"
-          : "localhost",
-      path: "/",
-    });
+    // Refresh token IS httpOnly
+    res.cookie("refreshToken", refreshToken, cookieOptions(true));
 
-    res.json({
+    return res.json({
       message: "Login successful",
-      accessToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user: { id: user._id, name: user.name, email: user.email },
     });
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
   }
 };
 
-// =======================
-// Refresh Access Token (FIX FOR YOUR ERROR)
-// =======================
+/* =======================
+  REFRESH ACCESS TOKEN
+=========================*/
 export const refreshAccessToken = async (req, res) => {
   try {
     const { refreshToken } = req.cookies;
-
-    if (!refreshToken) {
+    if (!refreshToken)
       return res.status(401).json({ message: "No refresh token found" });
-    }
 
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
@@ -113,24 +70,158 @@ export const refreshAccessToken = async (req, res) => {
     );
 
     // Update accessToken cookie
-    res.cookie("accessToken", newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-      domain:
-        process.env.NODE_ENV === "production"
-          ? "facultymanagement.onrender.com"
-          : "localhost",
-      path: "/",
-    });
+    res.cookie("accessToken", newAccessToken, cookieOptions(false));
 
-    res.json({ accessToken: newAccessToken });
-
-  } catch (error) {
-    res.status(401).json({ message: "Invalid refresh token" });
+    return res.json({ accessToken: newAccessToken });
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid refresh token" });
   }
 };
+
+/* =======================
+      LOGOUT
+=========================*/
+export const logoutUser = (req, res) => {
+  res.clearCookie("accessToken", cookieOptions(false));
+  res.clearCookie("refreshToken", cookieOptions(true));
+  res.json({ message: "Logged out successfully" });
+};
+
+
+
+// import crypto from "crypto";
+// import jwt from "jsonwebtoken";
+// import User from "../models/User.js";
+// import { generateTokens } from "../utils/generateTokens.js";
+// import sendEmailWithTemplate from "../utils/sendEmail.js";
+
+// // =======================
+// // Register User
+// // =======================
+// export const registerUser = async (req, res) => {
+//   try {
+//     const { name, email, password } = req.body;
+
+//     if (!name || !email || !password)
+//       return res.status(400).json({ message: "All fields are required" });
+
+//     const exists = await User.findOne({ email });
+//     if (exists)
+//       return res.status(400).json({ message: "Email already registered" });
+
+//     const user = await User.create({ name, email, password });
+
+//     res.status(201).json({
+//       message: "User registered successfully",
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//       },
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+
+
+// =======================
+// Login User New Code by Adil
+// =======================
+// export const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     const user = await User.findOne({ email });
+//     if (!user)
+//       return res.status(400).json({ message: "This email is not registred" });
+
+//     const match = await user.matchPassword(password);
+//     if (!match)
+//       return res.status(400).json({ message: "You entered a wrong password" });
+
+//     const { accessToken, refreshToken } = generateTokens(user._id);
+
+//     // ACCESS TOKEN COOKIE
+//     res.cookie("accessToken", accessToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+//       maxAge: 24 * 60 * 60 * 1000,
+//       domain:
+//         process.env.NODE_ENV === "production"
+//           ? "facultymanagement.onrender.com"
+//           : "localhost",
+//       path: "/",
+//     });
+
+//     // REFRESH TOKEN COOKIE
+//     res.cookie("refreshToken", refreshToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//       domain:
+//         process.env.NODE_ENV === "production"
+//           ? "facultymanagement.onrender.com"
+//           : "localhost",
+//       path: "/",
+//     });
+
+//     res.json({
+//       message: "Login successful",
+//       accessToken,
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//       },
+//     });
+
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+// // =======================
+// // Refresh Access Token (FIX FOR YOUR ERROR)
+// // =======================
+// export const refreshAccessToken = async (req, res) => {
+//   try {
+//     const { refreshToken } = req.cookies;
+
+//     if (!refreshToken) {
+//       return res.status(401).json({ message: "No refresh token found" });
+//     }
+
+//     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+//     const newAccessToken = jwt.sign(
+//       { id: decoded.id },
+//       process.env.ACCESS_TOKEN_SECRET,
+//       { expiresIn: "15m" }
+//     );
+
+//     // Update accessToken cookie
+//     res.cookie("accessToken", newAccessToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+//       maxAge: 24 * 60 * 60 * 1000,
+//       domain:
+//         process.env.NODE_ENV === "production"
+//           ? "facultymanagement.onrender.com"
+//           : "localhost",
+//       path: "/",
+//     });
+
+//     res.json({ accessToken: newAccessToken });
+
+//   } catch (error) {
+//     res.status(401).json({ message: "Invalid refresh token" });
+//   }
+// };
 
 
 
@@ -206,10 +297,10 @@ export const refreshAccessToken = async (req, res) => {
 // =======================
 // Logout User
 // =======================
-export const logoutUser = (req, res) => {
-  res.clearCookie("refreshToken");
-  res.json({ message: "Logged out successfully" });
-};
+// export const logoutUser = (req, res) => {
+//   res.clearCookie("refreshToken");
+//   res.json({ message: "Logged out successfully" });
+// };
 
 // =======================
 // Forgot Password
