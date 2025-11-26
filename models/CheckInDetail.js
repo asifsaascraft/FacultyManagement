@@ -47,13 +47,13 @@ const CheckInDetailSchema = new mongoose.Schema(
       type: String,
     },
     talkDate: {
-      type: String,
+      type: Date,
     },
     talkStartTime: {
-      type: String,
+      type: Date,
     },
     talkEndTime: {
-      type: String,
+      type: Date,
     },
     arrivalCheckInStatus: {
       type: Boolean,
