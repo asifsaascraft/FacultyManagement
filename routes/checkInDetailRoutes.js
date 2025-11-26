@@ -5,6 +5,10 @@ import {
   createCheckInDetail,
   getAllCheckInDetails,
   getCheckInDetailById,
+  getArrivalDateExists,
+  getDepartureDateExists,
+  getHotelNameExists,
+  getTopicNameExists,
   updateArrivalCheckIn,
   updateDepartureCheckIn,
   updateHotelCheckIn,
@@ -18,6 +22,12 @@ const router = express.Router();
 router.post("/users/checkin-details", protect, createCheckInDetail);     // Create
 router.get("/checkin-details", protect, getAllCheckInDetails);     // Get all
 router.get("/checkin-details/:id", protect, getCheckInDetailById);  // Get single
+
+// Filter APIs
+router.get("/checkin-details/arrival/exist", protect, getArrivalDateExists);
+router.get("/checkin-details/departure/exist", protect, getDepartureDateExists);
+router.get("/checkin-details/hotel/exist", protect, getHotelNameExists);
+router.get("/checkin-details/topic/exist", protect, getTopicNameExists);
 
 // Update check-in statuses
 router.put("/checkin-details/:id/arrival", protect, updateArrivalCheckIn);

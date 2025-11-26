@@ -8,14 +8,6 @@ export const createCheckInDetail = async (req, res) => {
   try {
     const { email } = req.body;
 
-    const exists = await CheckInDetail.findOne({ email });
-
-    if (exists) {
-      return res.status(400).json({
-        message: "Email already exists",
-      });
-    }
-
     const data = await CheckInDetail.create(req.body);
 
     res.status(201).json({
@@ -59,6 +51,67 @@ export const getCheckInDetailById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// =======================
+// Get All Check-In Records Where arrivalDate exists
+// =======================
+export const getArrivalDateExists = async (req, res) => {
+  try {
+    const data = await CheckInDetail.find({
+      arrivalDate: { $exists: true, $ne: "" }
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({ count: data.length, data });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =======================
+// Get All Check-In Records Where departureDate exists
+// =======================
+export const getDepartureDateExists = async (req, res) => {
+  try {
+    const data = await CheckInDetail.find({
+      departureDate: { $exists: true, $ne: "" }
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({ count: data.length, data });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =======================
+// Get All Check-In Records Where hotelName exists
+// =======================
+export const getHotelNameExists = async (req, res) => {
+  try {
+    const data = await CheckInDetail.find({
+      hotelName: { $exists: true, $ne: "" }
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({ count: data.length, data });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =======================
+// Get All Check-In Records Where topicName exists
+// =======================
+export const getTopicNameExists = async (req, res) => {
+  try {
+    const data = await CheckInDetail.find({
+      topicName: { $exists: true, $ne: "" }
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({ count: data.length, data });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 // =======================
 // Update Arrival Check-In
